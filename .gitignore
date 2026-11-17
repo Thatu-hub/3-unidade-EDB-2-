@@ -1,0 +1,8 @@
+# executaveis
+*.out
+menu_splay
+teste[0-9]*
+!teste[0-9]*.c
+
+# macos
+.DS_Store
