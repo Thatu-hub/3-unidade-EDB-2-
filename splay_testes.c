@@ -1,7 +1,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
- 
+
+long long visitadosS = 0; // contador de nos visitados (pros testes)
+
 // no da arvore splay
 typedef struct No {
     int chave;
@@ -42,14 +44,18 @@ No *rotEsq(No *x) {
 // zig, zig-zig e zig-zag tudo aqui
 No *splay(No *raiz, int chave) {
     // arvore vazia ou ja ta na raiz
-    if (raiz == NULL || raiz->chave == chave)
+    if (raiz == NULL)
         return raiz;
- 
+    visitadosS++; // visitou a raiz
+    if (raiz->chave == chave)
+        return raiz;
+
     // chave ta na subarvore esquerda
     if (chave < raiz->chave) {
         if (raiz->esq == NULL)
             return raiz; // nao achou, para aqui
- 
+        visitadosS++; // visitou o filho esq
+
         // zig-zig (esq esq)
         if (chave < raiz->esq->chave) {
             raiz->esq->esq = splay(raiz->esq->esq, chave);
@@ -71,7 +77,8 @@ No *splay(No *raiz, int chave) {
     else {
         if (raiz->dir == NULL)
             return raiz;
- 
+        visitadosS++; // visitou o filho dir
+
         // zag-zig (dir esq)
         if (chave < raiz->dir->chave) {
             raiz->dir->esq = splay(raiz->dir->esq, chave);
@@ -155,6 +162,14 @@ void em_ordem(No *raiz) {
     em_ordem(raiz->esq);
     printf("%d ", raiz->chave);
     em_ordem(raiz->dir);
+}
+
+// coloca as chaves em ordem no vetor (usado pra passar os dados pra arvore B)
+void emOrdemS(No *raiz, int *vet, int *pos) {
+    if (raiz == NULL) return;
+    emOrdemS(raiz->esq, vet, pos);
+    vet[(*pos)++] = raiz->chave;
+    emOrdemS(raiz->dir, vet, pos);
 }
  
 void preOrdem(No *raiz) {
