@@ -1,7 +1,8 @@
-// monitor: olha as ultimas W buscas e decide qual arvore usar
+// monitor: olha as ultimas W buscas amostradas e decide qual arvore usar
 // taxa de repeticao = 1 - (chaves distintas na janela / W)
 // histerese: na B troca se taxa > sobe, na splay volta se taxa < desce
 // e so pode trocar depois de minOps buscas desde a ultima troca
+// amostragem: so olha 1 a cada 'amostra' buscas (as outras so contam), pra gastar menos
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,13 +23,16 @@ typedef struct Monitor {
     int minOps;     // minimo de buscas entre trocas
     int desdeTroca; // buscas desde a ultima troca
 
+    int amostra;    // olha 1 a cada 'amostra' buscas (1 = olha todas)
+    int pulo;       // buscas desde a ultima que foi olhada
+
     int ativa;      // ARVORE_B ou SPLAY
     int trocas;     // quantas trocas aconteceram
 } Monitor;
 
 // cria o monitor (n = quantidade de chaves, pro vetor de contadores)
 // comeca na arvore B
-Monitor *novoMonitor(int n, int W, double sobe, double desce, int minOps) {
+Monitor *novoMonitor(int n, int W, double sobe, double desce, int minOps, int amostra) {
     Monitor *mon = (Monitor *) malloc(sizeof(Monitor));
     if (mon == NULL) {
         printf("Erro: sem memoria\n");
@@ -48,6 +52,8 @@ Monitor *novoMonitor(int n, int W, double sobe, double desce, int minOps) {
     mon->desce = desce;
     mon->minOps = minOps;
     mon->desdeTroca = 0;
+    mon->amostra = amostra;
+    mon->pulo = 0;
     mon->ativa = ARVORE_B;
     mon->trocas = 0;
     return mon;
@@ -59,7 +65,16 @@ double taxaRepeticao(Monitor *mon) {
 }
 
 // registra uma busca e retorna 1 se trocou de arvore, 0 se nao
+// chamar em toda busca: o proprio monitor decide se olha ou nao
 int registrarBusca(Monitor *mon, int chave) {
+    mon->desdeTroca++; // o minimo entre trocas conta buscas, nao amostras
+
+    // so olha 1 a cada 'amostra' buscas
+    mon->pulo++;
+    if (mon->pulo < mon->amostra)
+        return 0;
+    mon->pulo = 0;
+
     // janela cheia: a chave mais antiga sai
     if (mon->cheia == mon->W) {
         int velha = mon->janela[mon->pos];
@@ -76,8 +91,6 @@ int registrarBusca(Monitor *mon, int chave) {
         mon->distintos++;
     mon->cont[chave]++;
     mon->pos = (mon->pos + 1) % mon->W;
-
-    mon->desdeTroca++;
 
     // so decide com a janela cheia e depois do minimo de buscas
     if (mon->cheia < mon->W || mon->desdeTroca < mon->minOps)

@@ -1,8 +1,7 @@
-# executaveis
+# executaveis (so os da raiz, pra nao pegar os csv em resultados/)
 *.out
-menu_splay
-teste[0-9]*
-!teste[0-9]*.c
+/menu_splay
+/teste[0-9]
 
 # macos
 .DS_Store
